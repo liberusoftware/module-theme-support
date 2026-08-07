@@ -21,11 +21,14 @@
       "name": "theme-support"
     }
   },
-  "version": "1.3.0",
+  "version": "1.4.0",
   "autoload-dev": {
     "psr-4": {
       "Liberu\\Foundation\\Theme\\Tests\\": "tests/"
-    }
+    },
+    "files": [
+      "tests/Helpers.php"
+    ]
   },
   "require-dev": {
     "liberusoftware/package-testbench": "^1.7",
