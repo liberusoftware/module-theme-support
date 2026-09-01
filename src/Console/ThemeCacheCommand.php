@@ -8,8 +8,10 @@ use Liberu\Foundation\Theme\Discovery\ThemeDiscovery;
 
 final class ThemeCacheCommand extends Command
 {
+    #[\Override]
     protected $signature = 'theme:cache';
 
+    #[\Override]
     protected $description = 'Atomically cache the validated theme registry for deployment';
 
     public function handle(ThemeCache $cache, ThemeDiscovery $discovery): int

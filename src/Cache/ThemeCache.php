@@ -5,13 +5,13 @@ namespace Liberu\Foundation\Theme\Cache;
 use Illuminate\Filesystem\Filesystem;
 use Liberu\Foundation\Theme\Exceptions\InvalidTheme;
 
-final class ThemeCache
+final readonly class ThemeCache
 {
-    private readonly Filesystem $files;
+    private Filesystem $files;
 
     public function __construct(?Filesystem $files = null)
     {
-        $this->files = $files ?? new Filesystem();
+        $this->files = $files ?? new Filesystem;
     }
 
     public function load(string $path): array
