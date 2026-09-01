@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
-use Liberu\Foundation\ModuleManager\Manifest;
 use Liberu\Foundation\ModuleManager\ModuleRegistry;
 use Liberu\Foundation\Settings\Settings\SiteSettings;
 use Liberu\Foundation\Theme\Cache\ThemeCache;
@@ -45,9 +44,9 @@ final class ThemeManager
             if (! File::isFile($cachePath)) {
                 throw new InvalidTheme('Theme caching is enabled but no deployment cache exists.');
             }
-            $this->themes = (new ThemeCache)->load($cachePath);
+            $this->themes = (new ThemeCache())->load($cachePath);
         } else {
-            $this->themes = (new ThemeDiscovery)->discover($this->themesPath);
+            $this->themes = (new ThemeDiscovery())->discover($this->themesPath);
         }
         foreach (array_keys($this->themes) as $name) {
             $this->inheritanceChain($name);
@@ -174,7 +173,7 @@ final class ThemeManager
         if (! $finder instanceof FileViewFinder) {
             return;
         }
-        $themeRoots = array_map(fn (string $name): string => realpath($this->getThemeViewsPath($name)) ?: $this->getThemeViewsPath($name), array_keys($this->themes));
+        $themeRoots = array_map(fn (string $name) => realpath($this->getThemeViewsPath($name)) ?: $this->getThemeViewsPath($name), array_keys($this->themes));
         $paths = array_values(array_diff($finder->getPaths(), $themeRoots));
         $chain = array_reverse($this->inheritanceChain());
         foreach ($chain as $name) {
@@ -256,7 +255,7 @@ final class ThemeManager
 
     public function clearCache(): void
     {
-        (new ThemeCache)->clear((string) config(
+        (new ThemeCache())->clear((string) config(
             'theme.cache_path',
             base_path('bootstrap/cache/liberu-themes.php.cache'),
         ));
@@ -264,10 +263,16 @@ final class ThemeManager
 
     public function hasCustomLayout(string $layout, ?string $theme = null): bool
     {
-        return array_any($this->inheritanceChain($theme), fn (?string $candidate) => File::isFile($this->getThemeViewsPath($candidate)."/layouts/{$layout}.blade.php"));
+        foreach ($this->inheritanceChain($theme) as $candidate) {
+            if (File::isFile($this->getThemeViewsPath($candidate)."/layouts/{$layout}.blade.php")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public function getLayout(string $layout): string
+    public function getLayout(string $layout, ?string $theme = null): string
     {
         return "layouts.{$layout}";
     }
@@ -278,6 +283,6 @@ final class ThemeManager
             return [];
         }$resolved = app(ModuleRegistry::class)->resolve((array) config('modules.enabled', []), (array) config('modules.disabled', []));
 
-        return array_values(array_unique(array_merge(...array_map(fn (Manifest $manifest) => $manifest->capabilities(), $resolved))));
+        return array_values(array_unique(array_merge(...array_map(fn ($manifest) => $manifest->capabilities(), $resolved))));
     }
 }

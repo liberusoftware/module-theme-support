@@ -7,10 +7,8 @@ use Liberu\Foundation\Theme\Services\ThemeManager;
 
 final class ThemeValidateCommand extends Command
 {
-    #[\Override]
     protected $signature = 'theme:validate';
 
-    #[\Override]
     protected $description = 'Validate theme manifests, packages, capabilities, assets, and inheritance';
 
     public function handle(ThemeManager $manager): int

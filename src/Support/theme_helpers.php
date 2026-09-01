@@ -29,7 +29,7 @@ if (! function_exists('theme_asset')) {
      */
     function theme_asset(string $path, ?string $theme = null): string
     {
-        $theme ??= active_theme();
+        $theme = $theme ?? active_theme();
 
         return theme()->assetUrl($path, $theme);
     }

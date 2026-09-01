@@ -19,7 +19,7 @@ class ThemeServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(ThemeManager::class, fn (): ThemeManager => new ThemeManager);
+        $this->app->singleton(ThemeManager::class, fn () => new ThemeManager());
         $this->app->alias(ThemeManager::class, 'theme');
         foreach ($this->app->make(ThemeManager::class)->providers() as $provider) {
             $this->app->register($provider);

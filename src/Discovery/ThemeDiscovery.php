@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\File;
 use Liberu\Foundation\Theme\Exceptions\InvalidTheme;
 use Liberu\Foundation\Theme\Manifests\ThemeManifest;
 
-final readonly class ThemeDiscovery
+final class ThemeDiscovery
 {
     /**
      * @param  list<string>|null  $installedPaths  where each `liberu-theme` Composer package
      *                                             is installed; read from Composer when null
      */
-    public function __construct(private ?array $installedPaths = null) {}
+    public function __construct(private readonly ?array $installedPaths = null) {}
 
     /**
      * Every theme this application has, from the tracked tree and from Composer.
@@ -88,7 +88,7 @@ final readonly class ThemeDiscovery
         }
 
         return array_values(array_filter(array_map(
-            InstalledVersions::getInstallPath(...),
+            static fn (string $package): ?string => InstalledVersions::getInstallPath($package),
             InstalledVersions::getInstalledPackagesByType('liberu-theme'),
         ), is_string(...)));
     }
