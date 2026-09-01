@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0
+
+- Always include the host Tailwind stylesheet alongside the active theme stylesheet.
+
 ## 1.4.3 - 2026-08-24
 
 - Ignore duplicate tracked package paths when Composer also exposes the same theme.
