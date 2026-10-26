@@ -47,9 +47,9 @@ final class ThemeManager
             if (! File::isFile($cachePath)) {
                 throw new InvalidTheme('Theme caching is enabled but no deployment cache exists.');
             }
-            $this->themes = (new ThemeCache)->load($cachePath);
+            $this->themes = (new ThemeCache())->load($cachePath);
         } else {
-            $this->themes = (new ThemeDiscovery)->discover($this->themesPath);
+            $this->themes = (new ThemeDiscovery())->discover($this->themesPath);
         }
         foreach (array_keys($this->themes) as $name) {
             $this->inheritanceChain($name);
@@ -261,7 +261,7 @@ final class ThemeManager
 
     public function clearCache(): void
     {
-        (new ThemeCache)->clear((string) config(
+        (new ThemeCache())->clear((string) config(
             'theme.cache_path',
             base_path('bootstrap/cache/liberu-themes.php.cache'),
         ));
