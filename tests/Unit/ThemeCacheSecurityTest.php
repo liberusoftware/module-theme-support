@@ -12,7 +12,7 @@ final class ThemeCacheSecurityTest extends TestCase
     {
         $path = tempnam(sys_get_temp_dir(), 'theme-security-');
         try {
-            $cache = new ThemeCache;
+            $cache = new ThemeCache();
             $cache->write([], $path);
             self::assertSame([], $cache->load($path));
         } finally {
@@ -24,9 +24,9 @@ final class ThemeCacheSecurityTest extends TestCase
     {
         $path = tempnam(sys_get_temp_dir(), 'theme-security-');
         CachePayload::$awakened = false;
-        file_put_contents($path, serialize(['payload' => new CachePayload]));
+        file_put_contents($path, serialize(['payload' => new CachePayload()]));
         try {
-            (new ThemeCache)->load($path);
+            (new ThemeCache())->load($path);
             self::fail('An unexpected cached object was accepted.');
         } catch (InvalidTheme) {
             self::assertFalse(CachePayload::$awakened);

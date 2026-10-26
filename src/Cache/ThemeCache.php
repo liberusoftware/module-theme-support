@@ -12,7 +12,7 @@ final class ThemeCache
 
     public function __construct(?Filesystem $files = null)
     {
-        $this->files = $files ?? new Filesystem;
+        $this->files = $files ?? new Filesystem();
     }
 
     public function load(string $path): array

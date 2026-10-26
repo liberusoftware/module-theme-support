@@ -24,9 +24,6 @@ final class ThemeManager
 
     protected readonly string $themesPath;
 
-    /** @var array{registry: ModuleRegistry, enabled: array, disabled: array, capabilities: array}|null */
-    private ?array $capabilitySnapshot = null;
-
     public function __construct(?string $themesPath = null)
     {
         $this->themesPath = $themesPath ?? base_path('themes');
@@ -47,9 +44,9 @@ final class ThemeManager
             if (! File::isFile($cachePath)) {
                 throw new InvalidTheme('Theme caching is enabled but no deployment cache exists.');
             }
-            $this->themes = (new ThemeCache)->load($cachePath);
+            $this->themes = (new ThemeCache())->load($cachePath);
         } else {
-            $this->themes = (new ThemeDiscovery)->discover($this->themesPath);
+            $this->themes = (new ThemeDiscovery())->discover($this->themesPath);
         }
         foreach (array_keys($this->themes) as $name) {
             $this->inheritanceChain($name);
@@ -125,9 +122,12 @@ final class ThemeManager
         if (! isset($this->themes[$theme])) {
             return false;
         }
-        $available = $this->enabledCapabilities();
+        $required = $this->themes[$theme]->requiredCapabilities();
+        if ($required === []) {
+            return true;
+        }
 
-        return array_diff($this->themes[$theme]->requiredCapabilities(), $available) === [];
+        return array_diff($required, $this->enabledCapabilities()) === [];
     }
 
     /**
@@ -200,12 +200,7 @@ final class ThemeManager
 
     public function activeEntries(): array
     {
-        return array_values(array_unique(array_filter([
-            'resources/css/app.css',
-            $this->activeCssEntry(),
-            $this->getThemeJs(),
-            'resources/js/app.js',
-        ])));
+        return array_values(array_unique(array_filter([$this->activeCssEntry(), $this->getThemeJs(), 'resources/js/app.js'])));
     }
 
     public function assetUrl(string $path, ?string $theme = null): string
@@ -263,7 +258,7 @@ final class ThemeManager
 
     public function clearCache(): void
     {
-        (new ThemeCache)->clear((string) config(
+        (new ThemeCache())->clear((string) config(
             'theme.cache_path',
             base_path('bootstrap/cache/liberu-themes.php.cache'),
         ));
@@ -289,21 +284,8 @@ final class ThemeManager
     {
         if (! app()->bound(ModuleRegistry::class)) {
             return [];
-        }
-        $registry = app(ModuleRegistry::class);
-        $enabled = (array) config('modules.enabled', []);
-        $disabled = (array) config('modules.disabled', []);
-        if ($this->capabilitySnapshot !== null
-            && $this->capabilitySnapshot['registry'] === $registry
-            && $this->capabilitySnapshot['enabled'] === $enabled
-            && $this->capabilitySnapshot['disabled'] === $disabled) {
-            return $this->capabilitySnapshot['capabilities'];
-        }
+        }$resolved = app(ModuleRegistry::class)->resolve((array) config('modules.enabled', []), (array) config('modules.disabled', []));
 
-        $resolved = $registry->resolve($enabled, $disabled);
-        $capabilities = array_values(array_unique(array_merge(...array_map(fn ($manifest) => $manifest->capabilities(), $resolved))));
-        $this->capabilitySnapshot = compact('registry', 'enabled', 'disabled', 'capabilities');
-
-        return $capabilities;
+        return array_values(array_unique(array_merge(...array_map(fn ($manifest) => $manifest->capabilities(), $resolved))));
     }
 }
