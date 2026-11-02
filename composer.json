@@ -21,7 +21,7 @@
       "name": "theme-support"
     }
   },
-  "version": "1.5.7",
+  "version": "1.5.8",
   "autoload-dev": {
     "psr-4": {
       "Liberu\\Foundation\\Theme\\Tests\\": "tests/"
