@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.4 - 2026-11-14
+
+- Retain the application CSS bundle before theme assets so shared Tailwind styles remain available.
+- Support optional validated preference aliases for legacy host values, with actor/session/site priority preserved and invalid targets rejected.
+- Cover alias resolution and base CSS ordering in the native module suite.
+
 ## 1.8.3 - 2026-11-14
 
 - Read optional actor theme preferences safely when attributes are missing or projected.

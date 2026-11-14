@@ -205,3 +205,61 @@ it('rejects capability-gated themes when no module registry is bound', function 
 
     expect((new ThemeManager())->themeIsCompatible($name))->toBeFalse();
 });
+
+it('retains the application stylesheet before built theme assets without duplicating its fallback', function () {
+    [$manager, $name, , , $public] = contractThemeManager($this);
+    file_put_contents($public.'/build/manifest.json', json_encode([
+        'themes/'.$name.'/theme.css' => ['file' => 'theme.css'],
+    ]));
+
+    expect($manager->activeEntries())->toBe([
+        'resources/css/app.css', 'themes/'.$name.'/theme.css',
+        'themes/'.$name.'/theme.js', 'resources/js/app.js',
+    ]);
+
+    unlink($public.'/build/manifest.json');
+
+    expect(array_count_values($manager->activeEntries())['resources/css/app.css'])->toBe(1);
+});
+
+it('resolves configured legacy preference aliases for actors and sessions while preserving explicit choices', function () {
+    config(['theme.preference_aliases' => ['legacy-default' => 'dark']]);
+    $actor = new class() extends User {};
+    $actor->forceFill(['id' => 1, 'theme_preference' => 'legacy-default']);
+    Auth::setUser($actor);
+
+    expect(Blade::render('{{ $activeTheme }}'))->toBe('dark');
+
+    $actor->forceFill(['theme_preference' => null]);
+    session(['theme_preference' => 'legacy-default']);
+
+    expect(Blade::render('{{ $activeTheme }}'))->toBe('dark');
+
+    $actor->forceFill(['theme_preference' => 'default']);
+
+    expect(Blade::render('{{ $activeTheme }}'))->toBe('default');
+});
+
+it('rejects invalid alias targets and falls through to valid lower-priority preferences', function ($target) {
+    config(['theme.preference_aliases' => ['legacy-default' => $target]]);
+    $actor = new class() extends User {};
+    $actor->forceFill(['id' => 1, 'theme_preference' => 'legacy-default']);
+    Auth::setUser($actor);
+    session(['theme_preference' => 'dark']);
+
+    expect(Blade::render('{{ $activeTheme }}'))->toBe('dark');
+})->with(['missing' => ['unavailable'], 'invalid type' => [[]], 'empty' => ['']]);
+
+it('ignores malformed alias configuration and empty preference values', function () {
+    config(['theme.preference_aliases' => 'invalid']);
+    $actor = new class() extends User {};
+    $actor->forceFill(['id' => 1, 'theme_preference' => 'dark']);
+    Auth::setUser($actor);
+
+    expect(Blade::render('{{ $activeTheme }}'))->toBe('dark');
+
+    $actor->forceFill(['theme_preference' => '']);
+    session(['theme_preference' => '']);
+
+    expect(Blade::render('{{ $activeTheme }}'))->toBe('default');
+});
